@@ -1,15 +1,16 @@
-# BtEchoServer.py
+import bluetooth
 
-from btpycom import *
+server_sock=bluetooth.BluetoothSocket( bluetooth.RFCOMM )
 
-def onStateChanged(state, msg):
-    if state == "LISTENING":
-        print("Server is listening")
-    elif state == "CONNECTED":
-        print("Connection established to", msg)
-    elif state == "MESSAGE":
-        print("Got message", msg)
-        server.sendMessage(msg)
+port = 1
+server_sock.bind(("",port))
+server_sock.listen(1)
 
-serviceName = "EchoServer"
-server = BTServer(serviceName, stateChanged = onStateChanged)
+client_sock,address = server_sock.accept()
+print "Accepted connection from ",address
+
+data = client_sock.recv(1024)
+print "received [%s]" % data
+
+client_sock.close()
+server_sock.close()
