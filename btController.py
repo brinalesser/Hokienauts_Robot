@@ -1,6 +1,6 @@
 import bluetooth
 
-bd_addr = "01:23:45:67:89:AB"
+bd_addr = "E4:5F:01:7D:74:2F"
 
 port = 1
 
