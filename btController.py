@@ -7,6 +7,6 @@ port = 1
 sock=bluetooth.BluetoothSocket( bluetooth.RFCOMM )
 sock.connect((bd_addr, port))
 
-sock.send("hello!!")
+sock.send("admin:12345")
 
 sock.close()
