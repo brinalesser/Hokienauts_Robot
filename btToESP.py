@@ -84,7 +84,7 @@ def receive_msg():
 
         print(data)
         response = json.dumps(response)
-        await websocket.send(response)
+        sock.send(response)
             
 #connect to ESP32
 service_matches = find_service( address = addr )
