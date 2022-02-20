@@ -114,3 +114,4 @@ while(receive_msg):
     continue
 
 sock.close()
+move.destroy()
