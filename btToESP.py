@@ -12,6 +12,7 @@ def send_msg():
     print("\nSend a message to initiate motor control:\n")
     data = input()
     sock.send(bytes(data, 'UTF-8'))
+    sock.send("\n")
         
 def robotCtrl(command_input):
     global direction_command, turn_command
