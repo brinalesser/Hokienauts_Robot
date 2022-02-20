@@ -1,5 +1,6 @@
 from bluetooth import *
 import move
+import time
 
 speed_set = 100
 rad = 0.5
