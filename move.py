@@ -96,7 +96,7 @@ def motor_right(status, direction, speed):#Motor 1 positive and negative rotatio
 	return direction
 
 
-def move(speed, direction, turn, radius=0.6):   # 0 < radius <= 1
+def move(speed, direction, turn, radius=0.6):   # 0 < radius <= 1  
 	#speed = 100
 	if direction == 'forward':
 		if turn == 'right':
@@ -131,6 +131,20 @@ def move(speed, direction, turn, radius=0.6):   # 0 < radius <= 1
 		pass
 
 
+
+
 def destroy():
 	motorStop()
 	GPIO.cleanup()             # Release resource
+
+
+if __name__ == '__main__':
+	try:
+		speed_set = 60
+		setup()
+		move(speed_set, 'forward', 'no', 0.8)
+		time.sleep(1.3)
+		motorStop()
+		destroy()
+	except KeyboardInterrupt:
+		destroy()
