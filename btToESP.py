@@ -11,7 +11,7 @@ addr = "40:91:51:9B:E3:AE"
 def send_msg():
     print("\nSend a message to initiate motor control:\n")
     data = input()
-    sock.send(data)
+    sock.send(bytes(data, 'UTF-8'))
         
 def robotCtrl(command_input):
     global direction_command, turn_command
