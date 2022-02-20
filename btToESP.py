@@ -8,7 +8,7 @@ def send_msg():
 def receive_msg():
     data = sock.recv(buf_size)
     if data:
-        print("Received: " + data)
+        print("Received: [%s]" % (data))
             
 #MAC address of ESP32
 addr = "40:91:51:9B:E3:AE"
