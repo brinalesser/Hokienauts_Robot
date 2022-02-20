@@ -1,38 +1,25 @@
-import bluetooth
+"""
+A simple Python script to receive messages from a client over
+Bluetooth using Python sockets (with Python 3.3 or above).
+"""
 
-server_sock=bluetooth.BluetoothSocket( bluetooth.RFCOMM )
+import socket
 
-server_sock.bind(("",PORT_ANY))
-server_sock.listen(1)
-port = server_sock.getsockname()[1]
-
-uuid = "7179855a-3507-4dd4-a2ad-c0ff1175fdcd"
-
-advertise_service( server_sock, "HokienautsPiServer",
-                   service_id = uuid,
-                   service_classes = [ uuid, SERIAL_PORT_CLASS ],
-                   profiles = [ SERIAL_PORT_PROFILE ] )
-
-while True:          
-    print("Waiting for connection on RFCOMM channel %d" % port)
-
-    client_sock, client_info = server_sock.accept()
-    print("Accepted connection from ", client_info)
-
-    try:
-        data = client_sock.recv(1024)
-        if len(data) == 0: break
-        print("received [%s]" % data)
-        data = 'Hello!' 
-        client_sock.send(data)
-        print("sending [%s]" % data)
-
-    except IOError:
-        pass
-
-    except KeyboardInterrupt:
-        print("disconnected")
-        client_sock.close()
-        server_sock.close()
-        print("all done")
-        break
+hostMACAddress = 'E4:5F:01:7D:74:2F' # The MAC address of a Bluetooth adapter on the server. The server might have multiple Bluetooth adapters.
+port = 3 # 3 is an arbitrary choice. However, it must match the port used by the client.
+backlog = 1
+size = 1024
+s = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
+s.bind((hostMACAddress,port))
+s.listen(backlog)
+try:
+    client, address = s.accept()
+    while 1:
+        data = client.recv(size)
+        if data:
+            print(data)
+            client.send(data)
+except:	
+    print("Closing socket")	
+    client.close()
+    s.close()
