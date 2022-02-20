@@ -50,49 +50,22 @@ def receive_msg():
     direction_command = 'no'
     turn_command = 'no'
 
-    while True: 
-        response = {
-            'status' : 'ok',
-            'title' : '',
-            'data' : None
-        }
-
-        data = ''
-        data = sock.recv(buf_size).decode()
-        print("Received ["+data+"]")
-        
-        try:
-            data = json.loads(data)
-            
-        except Exception as e:
-            print('not A JSON')
-            return False
-
-        if isinstance(data,str):
-            robotCtrl(data, response)
-
-            if 'get_info' == data:
-                response['title'] = 'get_info'
-                response['data'] = ['info']
-
-            if 'wsB' in data:
-                try:
-                    set_B=data.split()
-                    speed_set = int(set_B[1])
-                except:
-                    pass
-        else:
-            pass
-
-        print(data)
-        response = json.dumps(response)
-        sock.send(response)
+    data = sock.recv(buf_size).decode()
+    print("Received ["+data+"]")
+    
+    if(data == 'forward' or data == 'backward' or data == 'right' or data == 'left' or data == 'TS' or data == 'DS'):
+        robotCtrl(data)
+    else:
+        data = "did not recognize command"
+        sock.send(bytes(data, 'UTF-8'))
  
 
 #init motor control
 move.setup()
 move.move(speed_set, 'forward', 'no', rad)
-time.sleep(1)
+time.sleep(0.5)
+move.move(speed_set, 'backward', 'no', rad)
+time.sleep(0.5)
 move.move(speed_set, 'no', 'no', rad)
 
 #connect to ESP32
