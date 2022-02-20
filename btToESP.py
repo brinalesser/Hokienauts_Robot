@@ -45,7 +45,6 @@ def robotCtrl(command_input):
 
 def receive_msg():
     
-    move.setup()
     direction_command = 'no'
     turn_command = 'no'
 
@@ -58,6 +57,7 @@ def receive_msg():
 
         data = ''
         data = sock.recv(buf_size).decode()
+        print("Received ["+data+"]")
         
         try:
             data = json.loads(data)
@@ -85,7 +85,14 @@ def receive_msg():
         print(data)
         response = json.dumps(response)
         sock.send(response)
-            
+ 
+
+#init motor control
+move.setup()
+move.move(speed_set, 'forward', 'no', rad)
+time.sleep(1)
+move.move(speed_set, 'no', 'no', rad)
+
 #connect to ESP32
 service_matches = find_service( address = addr )
 
