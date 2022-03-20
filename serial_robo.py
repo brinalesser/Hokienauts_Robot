@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import move
 import time
 import serial
@@ -6,7 +5,7 @@ import serial
 speed_set = 100
 rad = 0.5
 buf_size = 1024
-ser = serial.Serial ("/dev/ttyS0", 115200)
+ser = serial.Serial ("/dev/ttyUSB0", 115200)
         
 def robot_ctrl(command_input):
     global direction_command, turn_command
@@ -45,16 +44,16 @@ def receive_msg():
     if(data == 'F' or data == 'B' or data == 'R' or data == 'L' or data == 'S'):
         robot_ctrl(data)
     elif(data == 'Z'):
-        return false
+        return False
     else:
         data = "did not recognize command"
         send_msg(data)
     
-    return true
+    return True
  
 def send_msg(data):
-    ser.write(data)
-    print("Sent ["+data+"]")
+    ser.write(data.encode('UTF-8'))
+    #print("Sent ["+data+"]")
 
 #init motor control
 move.setup()
@@ -68,7 +67,7 @@ move.setup()
 
 send_msg("Hello from robot")
 
-while(receive_msg):
+while(receive_msg()):
     continue
 
 move.destroy()
