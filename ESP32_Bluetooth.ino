@@ -23,10 +23,14 @@ void setup()
 void loop()
 {
   if (Serial.available() > 0) {
-    serialInput = Serial.readStringUntil('\n') + "\n";
-    SerialBT.print(serialInput);
+    serialInput = Serial.readStringUntil('\n');
+    SerialBT.println(serialInput);
+
+    if(serialInput == "Hello from robot"){
+      Serial.println("Hello from ESP32");
+    }
+    
   }
-  
   
   if (SerialBT.available()) {
     btInput = SerialBT.readStringUntil('\n');
