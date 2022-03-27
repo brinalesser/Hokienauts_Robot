@@ -1,10 +1,4 @@
-#!/usr/bin/env python3
-# File name   : move.py
-# Description : Control Motor
-# Product     : GWR
-# Website     : www.gewbot.com
-# Author      : William
-# Date        : 2019/07/24
+# Originial code source from: https://github.com/adeept/Adeept_RaspTank
 import time
 import RPi.GPIO as GPIO
 
@@ -96,7 +90,7 @@ def motor_right(status, direction, speed):#Motor 1 positive and negative rotatio
 	return direction
 
 
-def move(speed, direction, turn, radius=0.6):   # 0 < radius <= 1  
+def move(speed, direction, turn, radius=0.6):   # 0 < radius <= 1
 	#speed = 100
 	if direction == 'forward':
 		if turn == 'right':
@@ -129,9 +123,6 @@ def move(speed, direction, turn, radius=0.6):   # 0 < radius <= 1
 			motorStop()
 	else:
 		pass
-
-
-
 
 def destroy():
 	motorStop()
