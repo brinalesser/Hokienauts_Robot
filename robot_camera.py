@@ -7,6 +7,6 @@ def take_picture():
     t_str = t.strftime('%H_%M_%S')
     image_name = 'image_'+t_str+'.jpg'
 
-    cmd = 'raspistill -t 1000 -w 100 -h 100 -o '+image_name
+    cmd = 'raspistill -vf -t 1000 -w 100 -h 100 -o '+image_name
     os.system(cmd)
     return image_name
