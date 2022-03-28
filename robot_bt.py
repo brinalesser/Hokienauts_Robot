@@ -42,6 +42,7 @@ def robot_pic():
         b = bytearray(f)
         ser.write(b)
         ser.write('\nEND\n'.encode('UTF-8'))
+        print("Image sent")
 
 def receive_msg():
 
