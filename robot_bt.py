@@ -37,13 +37,10 @@ def robot_ctrl(command_input):
 
 def robot_pic():
     image_name = robot_camera.take_picture()
-    with open(image_name, "rb") as image:
-        f = image.read()
-        b = bytearray(f)
-        send_msg("START")
-        ser.write(b)
-        send_msg("END")
-        print("Image sent")
+    send_msg("START")
+    ser.write(open(image_name, "rb").read())
+    send_msg("END")
+    print("Image sent")
 
 def receive_msg():
 
@@ -66,7 +63,6 @@ def receive_msg():
     return True
 
 def send_msg(data):
-    data += '\n'
     ser.write(data.encode('UTF-8'))
     #print("Sent ["+data+"]")
 
