@@ -61,9 +61,6 @@ def receive_msg():
         robot_pic()
     elif(data == 'Z'):
         return False
-    else:
-        data = "did not recognize command"
-        send_msg(data)
 
     return True
 
