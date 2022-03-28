@@ -9,3 +9,4 @@ def take_picture():
 
     cmd = 'raspistill -t 1000 -o '+image_name
     os.system(cmd)
+    return image_name
