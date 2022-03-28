@@ -40,6 +40,7 @@ def robot_pic():
     with open(image_name, "rb") as image:
         f = image.read()
         b = bytearray(f)
+        print(b)
         ser.write(b)
         ser.write('\n'.encode('UTF-8'))
 
