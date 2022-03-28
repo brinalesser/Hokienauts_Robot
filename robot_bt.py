@@ -40,8 +40,9 @@ def robot_pic():
     with open(image_name, "rb") as image:
         f = image.read()
         b = bytearray(f)
+        send_msg("START")
         ser.write(b)
-        ser.write('\nEND\n'.encode('UTF-8'))
+        send_msg("END")
         print("Image sent")
 
 def receive_msg():
@@ -65,6 +66,7 @@ def receive_msg():
     return True
 
 def send_msg(data):
+    data += '\n'
     ser.write(data.encode('UTF-8'))
     #print("Sent ["+data+"]")
 
