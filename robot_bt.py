@@ -69,6 +69,7 @@ def send_msg(data):
 if __name__ == '__main__':
     #init motor control
     robot_move.setup()
+    robot_led.resume()
 
     #test motion
     #robot_move.move(speed_set, 'forward', 'no', rad)
@@ -77,9 +78,8 @@ if __name__ == '__main__':
     #time.sleep(0.5)
     #robot_move.move(speed_set, 'no', 'no', rad)
 
-    send_msg("Hello from robot")
-
     while(receive_msg()):
         continue
 
+    robot_led.pause()
     robot_move.destroy()

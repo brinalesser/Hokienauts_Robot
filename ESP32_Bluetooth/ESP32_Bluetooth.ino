@@ -5,10 +5,13 @@ BluetoothSerial SerialBT;
 String btInput;
 String serialInput;
 
-bool recv_pic;
+int num_bytes;
+byte buf[1024];
      
 void setup()
 {
+  num_bytes = 0;
+  
   Serial.begin(115200);
 
   SerialBT.begin("ESP32test");
@@ -18,40 +21,20 @@ void setup()
   else{
     Serial.println("Serial Bluetooth NOT Started");
   }
-  
-  recv_pic = false;
   delay(1000);
 }
      
 void loop()
 {
-  if(recv_pic){
-    serialInput = Serial.readString();
-    SerialBT.print(serialInput);
-    if(serialInput.endsWith("END")){
-      recv_pic = false;
-    }
-    return;
+  num_bytes = Serial.available();
+  if (num_bytes > 0) {
+    Serial.readBytes(buf, num_bytes);
+    SerialBT.write(buf, num_bytes);
   }
   
-  if (Serial.available() > 0) {
-    serialInput = Serial.readStringUntil('\n');
-    SerialBT.println(serialInput);
-
-    if(serialInput == "Hello from robot"){
-      Serial.println("Hello from ESP32");
-    }
-    if(serialInput == "START"){
-      recv_pic = true;
-    }
-  }
-  
-  if (SerialBT.available()) {
-    btInput = SerialBT.readStringUntil('\n');
-    Serial.println(btInput);
-
-    if(btInput == "Hello from PC"){
-      SerialBT.println("Hello from ESP32");
-    }
+  num_bytes = SerialBT.available();
+  if (num_bytes > 0) {
+    SerialBT.readBytes(buf, num_bytes);
+    Serial.write(buf, num_bytes);
   }
 }
