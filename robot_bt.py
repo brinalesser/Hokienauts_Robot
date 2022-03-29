@@ -37,9 +37,15 @@ def robot_ctrl(command_input):
 
 def robot_pic():
     image_name = robot_camera.take_picture()
-    send_msg("START")
-    ser.write(open(image_name, "rb").read())
-    send_msg("END")
+    
+    with open(image_name, "rb") as image:
+        f = image.read()
+        b = bytearray(f)
+        b.insert(0,0x2)#STX
+        b.append(0x3)#ETX
+        b.append(0x3)#ETX
+        b.append(0x4)#EOT
+        ser.write(b)
     print("Image sent")
 
 def receive_msg():
@@ -59,6 +65,8 @@ def receive_msg():
         robot_pic()
     elif(data == 'Z'):
         return False
+    elif(data == "Hello from PC"):
+        send_msg("Hello from Robot")
 
     return True
 
@@ -69,7 +77,6 @@ def send_msg(data):
 if __name__ == '__main__':
     #init motor control
     robot_move.setup()
-    robot_led.resume()
 
     #test motion
     #robot_move.move(speed_set, 'forward', 'no', rad)
@@ -81,5 +88,4 @@ if __name__ == '__main__':
     while(receive_msg()):
         continue
 
-    robot_led.pause()
     robot_move.destroy()
