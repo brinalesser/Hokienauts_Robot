@@ -6,8 +6,8 @@
 SparkFun_AS7341X as7341L; 
 BluetoothSerial SerialBT;
 #define led 2
-//#define I2C_SDA_PIN 26
-//#define I2C_SCL_PIN 27
+//#define I2C_SDA_PIN 21
+//#define I2C_SCL_PIN 22
 String s;
 
 void setup() {
