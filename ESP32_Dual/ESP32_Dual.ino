@@ -21,8 +21,18 @@
 /* Defines -------------------------------------------------------------------*/
 
 // BLE UUIDs generated with https://www.uuidgenerator.net
-#define SERVICE_UUID        "739b6a1b-52d1-4d30-9fe7-93694d3bc463"
-#define CHARACTERISTIC_UUID "02c15c78-8d07-4540-a32d-aee6053033bc"
+#define SERVICE_UUID              "739b6a1b-52d1-4d30-9fe7-93694d3bc463"
+#define CHARACTERISTIC_CTRL_UUID  "02c15c78-8d07-4540-a32d-aee6053033bc"
+#define CHARACTERISTIC_415NM_UUID "c6011e60-226f-4580-ac56-c08a5baec46a"
+#define CHARACTERISTIC_445NM_UUID "d675e7ca-42f6-4c82-b4bd-8288172183af"
+#define CHARACTERISTIC_480NM_UUID "a45a0cb5-335a-400e-b24d-6335ba8b4c91"
+#define CHARACTERISTIC_515NM_UUID "89288a78-ae93-42fe-9d9b-5534f0245c40"
+#define CHARACTERISTIC_555NM_UUID "b25f8dfb-bf69-4184-9298-f1ea015fe25d"
+#define CHARACTERISTIC_590NM_UUID "90cc81c3-ba0a-4a21-8683-744b89669aed"
+#define CHARACTERISTIC_630NM_UUID "eaeca0e5-679b-44b0-b994-b83be7b83bf6"
+#define CHARACTERISTIC_680NM_UUID "5024e963-2055-4fc7-b472-9bd0bddf1dcd"
+#define CHARACTERISTIC_CLEAR_UUID "531553de-e595-4d79-9275-945505e712ac"
+#define CHARACTERISTIC_NIR_UUID   "181d6340-15bb-4766-941f-7bdb2727ced8"
 
 //Sensor Pins
 #define I2C_SDA_PIN 21
@@ -41,6 +51,18 @@ byte buf[1024];
 
 // Sensors
 SparkFun_AS7341X as7341L; 
+bool collect_data = false;
+BLECharacteristic *pCtrlCharacteristic;
+BLECharacteristic *p415Characteristic;
+BLECharacteristic *p445Characteristic;
+BLECharacteristic *p480Characteristic;
+BLECharacteristic *p515Characteristic;
+BLECharacteristic *p555Characteristic;
+BLECharacteristic *p590Characteristic;
+BLECharacteristic *p630Characteristic;
+BLECharacteristic *p680Characteristic;
+BLECharacteristic *pClearCharacteristic;
+BLECharacteristic *pNirCharacteristic;
 
 /* Callbacks -----------------------------------------------------------------*/
 
@@ -82,13 +104,73 @@ void setup() {
   BLEDevice::init("Hokienauts Robot BLE");
   BLEServer *pServer = BLEDevice::createServer();
   BLEService *pService = pServer->createService(SERVICE_UUID);
-  BLECharacteristic *pCharacteristic = pService->createCharacteristic(
-                                         CHARACTERISTIC_UUID,
+  pCtrlCharacteristic = pService->createCharacteristic(
+                                         CHARACTERISTIC_CTRL_UUID,
                                          BLECharacteristic::PROPERTY_READ |
                                          BLECharacteristic::PROPERTY_WRITE
                                        );
-  pCharacteristic->setValue("Initialized Value");
-  pCharacteristic->setCallbacks(new MyCallbacks());
+  pCtrlCharacteristic->setValue("Initialized Value");
+  pCtrlCharacteristic->setCallbacks(new MyCallbacks());
+  p415Characteristic = pService->createCharacteristic(
+                                         CHARACTERISTIC_415NM_UUID,
+                                         BLECharacteristic::PROPERTY_READ |
+                                         BLECharacteristic::PROPERTY_WRITE
+                                       );
+  p415Characteristic->setValue("0");
+  p445Characteristic = pService->createCharacteristic(
+                                         CHARACTERISTIC_445NM_UUID,
+                                         BLECharacteristic::PROPERTY_READ |
+                                         BLECharacteristic::PROPERTY_WRITE
+                                       );
+  p445Characteristic->setValue("0");
+  p480Characteristic = pService->createCharacteristic(
+                                         CHARACTERISTIC_480NM_UUID,
+                                         BLECharacteristic::PROPERTY_READ |
+                                         BLECharacteristic::PROPERTY_WRITE
+                                       );
+  p480Characteristic->setValue("0");
+  p515Characteristic = pService->createCharacteristic(
+                                         CHARACTERISTIC_515NM_UUID,
+                                         BLECharacteristic::PROPERTY_READ |
+                                         BLECharacteristic::PROPERTY_WRITE
+                                       );
+  p515Characteristic->setValue("0");
+  p555Characteristic = pService->createCharacteristic(
+                                         CHARACTERISTIC_555NM_UUID,
+                                         BLECharacteristic::PROPERTY_READ |
+                                         BLECharacteristic::PROPERTY_WRITE
+                                       );
+  p555Characteristic->setValue("0");
+  p590Characteristic = pService->createCharacteristic(
+                                         CHARACTERISTIC_590NM_UUID,
+                                         BLECharacteristic::PROPERTY_READ |
+                                         BLECharacteristic::PROPERTY_WRITE
+                                       );
+  p590Characteristic->setValue("0");
+  p630Characteristic = pService->createCharacteristic(
+                                         CHARACTERISTIC_630NM_UUID,
+                                         BLECharacteristic::PROPERTY_READ |
+                                         BLECharacteristic::PROPERTY_WRITE
+                                       );
+  p630Characteristic->setValue("0");
+  p680Characteristic = pService->createCharacteristic(
+                                         CHARACTERISTIC_680NM_UUID,
+                                         BLECharacteristic::PROPERTY_READ |
+                                         BLECharacteristic::PROPERTY_WRITE
+                                       );
+  p680Characteristic->setValue("0");
+  pClearCharacteristic = pService->createCharacteristic(
+                                         CHARACTERISTIC_CLEAR_UUID,
+                                         BLECharacteristic::PROPERTY_READ |
+                                         BLECharacteristic::PROPERTY_WRITE
+                                       );
+  pClearCharacteristic->setValue("0");
+  pNirCharacteristic = pService->createCharacteristic(
+                                         CHARACTERISTIC_NIR_UUID,
+                                         BLECharacteristic::PROPERTY_READ |
+                                         BLECharacteristic::PROPERTY_WRITE
+                                       );
+  pNirCharacteristic->setValue("0");
   pService->start();
 
   //BLE Advertising
@@ -132,8 +214,14 @@ void loop() {
 
   //Sensor control
   unsigned int channelReadings[12] = { 0 };  
-  if(buf[0] == 82){ //ASCII R
-    
+  if(buf[0] == 0x44){ //ASCII D
+    collect_data = true;
+  }
+  if(buf[0] == 0x46){ //ASCII F
+    collect_data = false;
+  }
+
+  if(collect_data) {
     as7341L.setLedDrive(LED_PIN);
     as7341L.enableWhiteLed();
     as7341L.enableIRLed();
@@ -142,28 +230,17 @@ void loop() {
     as7341L.readAllChannels(channelReadings);
 
     //send sensor data
-    Serial.print("(415nm): ");
-    Serial.print(channelReadings[0]);
-    Serial.print(";(445nm): ");
-    Serial.print(channelReadings[1]);
-    Serial.print(";(480nm): ");
-    Serial.print(channelReadings[2]);
-    Serial.print(";(515nm): ");
-    Serial.print(channelReadings[3]);
-    Serial.print(";(555nm): ");
-    Serial.print(channelReadings[6]);
-    Serial.print(";(590nm): ");
-    Serial.print(channelReadings[7]);
-    Serial.print(";(630nm): ");
-    Serial.print(channelReadings[8]);
-    Serial.print(";(680nm): ");
-    Serial.print(channelReadings[9]);
-    Serial.print(";(Clear): ");
-    Serial.print(channelReadings[10]);
-    Serial.print(";(NIR): ");
-    Serial.print(channelReadings[11]);
-    Serial.println();
-
+    //p415Characteristic->writeValue((byte)channelReadings[0]);
+    //p445Characteristic->writeValue((byte)channelReadings[1]);
+    //p480Characteristic->writeValue((byte)channelReadings[2]);
+    //p515Characteristic->writeValue((byte)channelReadings[3]);
+    //p555Characteristic->writeValue((byte)channelReadings[6]);
+    //p590Characteristic->writeValue((byte)channelReadings[7]);
+    //p630Characteristic->writeValue((byte)channelReadings[8]);
+    //p680Characteristic->writeValue((byte)channelReadings[9]);
+    //pClearCharacteristic->writeValue((byte)channelReadings[10]);
+    //pNitCharacteristic->writeValue((byte)channelReading[11]);
+    
     as7341L.disableWhiteLed();
     as7341L.disableIRLed();
     

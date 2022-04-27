@@ -6,6 +6,7 @@ import time
 import serial
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
 speed_set = 100
 rad = 0.5
@@ -47,6 +48,15 @@ def robot_pic():
         b.append(0x4)#EOT
         ser.write(b)
     print("Image sent")
+    
+def robot_microscope():
+    print("Microscope image sent")
+    
+def robot_sensor(str):
+    if(str == 'D')
+        print("Sensor Data Collection ON")
+    if(str == 'F')
+        print("Sensor Data Collection OFF")
 
 def receive_msg():
 
@@ -59,15 +69,25 @@ def receive_msg():
     data = ser.readline().decode('UTF-8').rstrip()
     print("Received ["+data+"]")
 
+    #movement
     if(data == 'F' or data == 'B' or data == 'R' or data == 'L' or data == 'S'):
         robot_ctrl(data)
+    #picture
     elif(data == 'P'):
         robot_pic()
+    #microscope
+    elif(data == 'M'):
+        robot_microscope()
+    #sensor
+    elif(data == 'D' or data == 'F'):
+        robot_sensor(data)
+    #ESTOP
     elif(data == 'Z'):
+        robot_move.move(speed_set, 'no', 'no', rad)
         return False
-    elif(data == "Hello from PC"):
+    #connection check
+    elif(data.startswith("Hello")):
         send_msg("Hello from Robot")
-
     return True
 
 def send_msg(data):
@@ -77,13 +97,6 @@ def send_msg(data):
 if __name__ == '__main__':
     #init motor control
     robot_move.setup()
-
-    #test motion
-    #robot_move.move(speed_set, 'forward', 'no', rad)
-    #time.sleep(0.5)
-    #robot_move.move(speed_set, 'backward', 'no', rad)
-    #time.sleep(0.5)
-    #robot_move.move(speed_set, 'no', 'no', rad)
 
     while(receive_msg()):
         continue
