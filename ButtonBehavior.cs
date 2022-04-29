@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 #if UNITY_EDITOR
 using System.IO.Ports;
-#elif NETFX_CORE
+#else
 using System;
 using System.Threading.Tasks;
 using Windows.Devices.Bluetooth.Rfcomm;
@@ -19,26 +19,16 @@ using System.Text;
 
 public class ButtonBehavior : MonoBehaviour
 {
-    // Start is called before the first frame update
-
-    Text status;
-    bool taking_picture = false;
-    private string inputString;
+    private bool taking_picture = false;
+    private string inputString = "";
 
 #if UNITY_EDITOR
     private SerialPort port;
-#elif NETFX_CORE
-    Windows.Devices.Bluetooth.Rfcomm.RfcommDeviceService _service;
-    Windows.Networking.Sockets.StreamSocket _socket;
-#endif
 
-    byte[] buf;
-
-    
     public void ConnectButtonPressHandler(Text status)
     {
 
-#if UNITY_EDITOR
+
         if (port == null)
         {
             status.text = "Connecting...";
@@ -50,8 +40,6 @@ public class ButtonBehavior : MonoBehaviour
                 //port.ReadTimeout = 50;
 
                 port.Open();
-
-                buf = new byte[1024];
 
                 try
                 {
@@ -74,38 +62,58 @@ public class ButtonBehavior : MonoBehaviour
             }
         }
 
-#elif NETFX_CORE
-    // Enumerate devices with the object push service
-    var services =
-        await Windows.Devices.Enumeration.DeviceInformation.FindAllAsync(
-            RfcommDeviceService.GetDeviceSelector(
-                RfcommServiceId.ObexObjectPush));
+    }
 
-    if (services.Count > 0)
+    public int readData()
     {
-        // Initialize the target Bluetooth BR device
-        var service = await RfcommDeviceService.FromIdAsync(services[0].Id);
+        return port.ReadByte();
+    }
 
-        bool isCompatibleVersion = await IsCompatibleVersionAsync(service);
+    public void writeData(string str)
+    {
+        port.Write(str);
+    }
 
-        // Check that the service meets this App's minimum requirement
-        if (isCompatibleVersion)
+    public bool isConnected()
+    {
+        return port != null;
+    }
+
+#else
+    Windows.Devices.Bluetooth.Rfcomm.RfcommDeviceService _service;
+    Windows.Networking.Sockets.StreamSocket _socket;
+
+    async public void ConnectButtonPressHandler(Text status)
+    {
+        // Enumerate devices with the object push service
+        var services =
+            await Windows.Devices.Enumeration.DeviceInformation.FindAllAsync(
+                RfcommDeviceService.GetDeviceSelector(
+                    RfcommServiceId.ObexObjectPush));
+
+        if (services.Count > 0)
         {
-            _service = service;
+            // Initialize the target Bluetooth BR device
+            var service = await RfcommDeviceService.FromIdAsync(services[0].Id);
 
-            // Create a socket and connect to the target
-            _socket = new StreamSocket();
-            await _socket.ConnectAsync(
-                _service.ConnectionHostName,
-                _service.ConnectionServiceName,
-                SocketProtectionLevel
-                    .PlainSocket);
+            bool isCompatibleVersion = await IsCompatibleVersionAsync(service);
+
+            // Check that the service meets this App's minimum requirement
+            if (isCompatibleVersion)
+            {
+                _service = service;
+
+                // Create a socket and connect to the target
+                _socket = new StreamSocket();
+                await _socket.ConnectAsync(
+                    _service.ConnectionHostName,
+                    _service.ConnectionServiceName,
+                    SocketProtectionLevel
+                        .PlainSocket);
+            }
         }
     }
-#endif
-    }
 
-#if NETFX_CORE
     // This App relies on CRC32 checking available in version 2.0 of the service.
     const uint SERVICE_VERSION_ATTRIBUTE_ID = 0x0300;
     const byte SERVICE_VERSION_ATTRIBUTE_TYPE = 0x0A;   // UINT32
@@ -127,20 +135,77 @@ public class ButtonBehavior : MonoBehaviour
         }
         else return false;
     }
+
+    async public Task<int> readData()
+    {
+        int readByte = 0;
+        using (var dataReader = new Windows.Storage.Streams.DataReader(_socket.InputStream))
+        {
+            dataReader.UnicodeEncoding = Windows.Storage.Streams.UnicodeEncoding.Utf8;
+            dataReader.ByteOrder = Windows.Storage.Streams.ByteOrder.LittleEndian;
+
+            await dataReader.LoadAsync(1);
+
+            readByte = dataReader.ReadInt32();
+        }
+        return readByte;
+    }
+
+    async public void writeData(string str)
+    {
+        // Create the data writer object backed by the in-memory stream.
+        using (var dataWriter = new Windows.Storage.Streams.DataWriter(_socket.OutputStream))
+        {
+            dataWriter.UnicodeEncoding = Windows.Storage.Streams.UnicodeEncoding.Utf8;
+            dataWriter.ByteOrder = Windows.Storage.Streams.ByteOrder.LittleEndian;
+            dataWriter.WriteString(str);
+
+            // Send the contents of the writer to the backing stream.
+            await dataWriter.StoreAsync();
+
+            // For the in-memory stream implementation we are using, the flushAsync call 
+            // is superfluous,but other types of streams may require it.
+            await dataWriter.FlushAsync();
+
+            // In order to prolong the lifetime of the stream, detach it from the 
+            // DataWriter so that it will not be closed when Dispose() is called on 
+            // dataWriter. Were we to fail to detach the stream, the call to 
+            // dataWriter.Dispose() would close the underlying stream, preventing 
+            // its subsequent use by the DataReader below.
+            dataWriter.DetachStream();
+        }
+    }
+
+    public bool isConnected()
+    {
+        return _socket != null;
+    }
+
 #endif
 
+#if UNITY_EDITOR
     private void Update()
+#else
+    async private void Update()
+#endif
     {
         inputString = string.Empty;
-#if UNITY_EDITOR
         if (taking_picture)
         {
             //get start of jpg stream
             int count = 0;
+#if UNITY_EDITOR
             int b = readData();
+#else
+            int b = await readData();
+#endif
             while (b != 2 && count < 100)
             {
+#if UNITY_EDITOR
                 b = readData();
+#else
+                b = await readData();
+#endif
                 count++;
             }
             if (!(b == 2))
@@ -154,7 +219,11 @@ public class ButtonBehavior : MonoBehaviour
             int done = 0;
             while (done != 3)
             {
+#if UNITY_EDITOR
                 b = readData();
+#else
+                b = await readData();
+#endif
                 if (done == 0)
                 {
                     if (b == 3)
@@ -202,8 +271,6 @@ public class ButtonBehavior : MonoBehaviour
         {
             Debug.Log(inputString);
         }
-
-#endif
     }
 
     public void ForwardButtonPressHandler()
@@ -246,7 +313,6 @@ public class ButtonBehavior : MonoBehaviour
             Debug.Log("Sent Stop");
         }
     }
-
     public void EStopButtonPressHandler()
     {
         if (isConnected())
@@ -255,7 +321,6 @@ public class ButtonBehavior : MonoBehaviour
             Debug.Log("Sent Emergency Stop");
         }
     }
-
     public void PictureButtonPressHandler()
     {
         if (isConnected())
@@ -264,35 +329,5 @@ public class ButtonBehavior : MonoBehaviour
             Debug.Log("Sent Take Picture");
             taking_picture = true;
         }
-    }
-
-    public int readData()
-    {
-#if UNITY_EDITOR
-        return port.ReadByte();
-#elif NETFX_CORE
-        var ibuf = new Windows.Storage.Streams.Buffer(1);
-        _socket.InputStream.ReadAsync(ibuf, 1, InputStreamOptions.None);
-        return 0;
-#endif
-
-    }
-
-    public void writeData(string str)
-    {
-#if UNITY_EDITOR
-        port.Write(str);
-#elif NETFX_CORE
-        _socket.OutputStream.WriteAsync(str);
-#endif
-    }
-
-    public bool isConnected()
-    {
-#if UNITY_EDITOR
-        return port != null;
-#elif NETFX_CORE
-        return true;
-#endif
     }
 }
