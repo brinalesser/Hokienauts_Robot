@@ -37,11 +37,38 @@ public class RobotMovement : MonoBehaviour
     public FixedJoystick joystick;
     private string received_string = "";
 
+    public int DataPoints = 50;
+
+    public static float[] XValues;
+    public static float[] Y1Values;
+    public static float[] Y2Values;
+    public static float[] Y3Values;
+    public static float[] Y4Values;
+    public static float[] Y5Values;
+    public static float[] Y6Values;
+    public static float[] Y7Values;
+    public static float[] Y8Values;
+    public static float[] Y9Values;
+    public static float[] Y10Values;
+
+
     // Start is called before the first frame update
     void Start()
     {
         joystick.SnapX = true;
         joystick.SnapY = true;
+
+        XValues = new float[DataPoints];
+        Y1Values = new float[DataPoints];
+        Y2Values = new float[DataPoints];
+        Y3Values = new float[DataPoints];
+        Y4Values = new float[DataPoints];
+        Y5Values = new float[DataPoints];
+        Y6Values = new float[DataPoints];
+        Y7Values = new float[DataPoints];
+        Y8Values = new float[DataPoints];
+        Y9Values = new float[DataPoints];
+        Y10Values = new float[DataPoints];
     }
 
     // Update is called once per frame
@@ -69,10 +96,33 @@ public class RobotMovement : MonoBehaviour
         Debug.Log(cmd);
     }
 
-    public void SensorButtonPressHandler(Text status)
+    public void SensorButtonPressHandler()
     {
         Debug.Log("sensor");
-        status.text = "Dummy Sensor Data";
+        for (int i = 0; i < DataPoints; i++)
+        {
+            received_string = "1,2,3,4,5,6,7,8,9,10";
+
+            string[] values = received_string.Split(',');
+            if (values.Length == 10)
+            {
+                XValues[i] = i;
+                Y1Values[i] = float.Parse(values[0]);
+                Y2Values[i] = float.Parse(values[1]);
+                Y3Values[i] = float.Parse(values[2]);
+                Y4Values[i] = float.Parse(values[3]);
+                Y5Values[i] = float.Parse(values[4]);
+                Y6Values[i] = float.Parse(values[5]);
+                Y7Values[i] = float.Parse(values[6]);
+                Y8Values[i] = float.Parse(values[7]);
+                Y9Values[i] = float.Parse(values[8]);
+                Y10Values[i] = float.Parse(values[9]);
+            }
+            else
+            {
+                Debug.Log("Received wrong number of values");
+            }
+        }
     }
     public void PictureButtonPressHandler(RawImage image)
     {
@@ -102,6 +152,7 @@ public class RobotMovement : MonoBehaviour
 
 
 #else
+
 using Windows.Web.Http;
 using System;
 
@@ -110,11 +161,37 @@ public class RobotMovement : MonoBehaviour
     public FixedJoystick joystick;
     private string received_string = "";
 
+    public int DataPoints = 50;
+
+    public static float[] XValues;
+    public static float[] Y1Values;
+    public static float[] Y2Values;
+    public static float[] Y3Values;
+    public static float[] Y4Values;
+    public static float[] Y5Values;
+    public static float[] Y6Values;
+    public static float[] Y7Values;
+    public static float[] Y8Values;
+    public static float[] Y9Values;
+    public static float[] Y10Values;
+
     // Start is called before the first frame update
     void Start()
     {
         joystick.SnapX = true;
         joystick.SnapY = true;
+
+        XValues = new float[DataPoints];
+        Y1Values = new float[DataPoints];
+        Y2Values = new float[DataPoints];
+        Y3Values = new float[DataPoints];
+        Y4Values = new float[DataPoints];
+        Y5Values = new float[DataPoints];
+        Y6Values = new float[DataPoints];
+        Y7Values = new float[DataPoints];
+        Y8Values = new float[DataPoints];
+        Y9Values = new float[DataPoints];
+        Y10Values = new float[DataPoints];
     }
 
     // Update is called once per frame
@@ -140,8 +217,8 @@ public class RobotMovement : MonoBehaviour
             cmd = "B";
         }
         HandleMovement(cmd);
-
     }
+
 
     private static void ChangePicture(RawImage image, byte[] byteArr)
     {
@@ -163,7 +240,7 @@ public class RobotMovement : MonoBehaviour
 
     async private void HandleMovement(string cmd)
     {
-        string uri_str = "http://192.168.1.1/?cmd=" + cmd;
+        string uri_str = "http://192.168.1.22/?cmd=" + cmd;
         System.Uri uri = new System.Uri(uri_str);
         using (var httpClient = new Windows.Web.Http.HttpClient())
         {
@@ -183,16 +260,36 @@ public class RobotMovement : MonoBehaviour
         }
     }
 
-    async public void SensorButtonPressHandler(Text status)
+    async public void SensorButtonPressHandler()
     {
-        System.Uri uri = new System.Uri("http://192.168.1.1/?cmd=sensor");
+        System.Uri uri = new System.Uri("http://192.168.1.22/?cmd=sensor");
         using (var httpClient = new Windows.Web.Http.HttpClient())
         {
             // Always catch network exceptions for async methods
             try
             {
-                received_string = await httpClient.GetStringAsync(uri);
-                status.text = received_string;
+                for(int i = 0; i < DataPoints; i++){
+                    received_string = await httpClient.GetStringAsync(uri);
+
+                    string[] values = received_string.Split(',');
+                    if(values.Length == 10){
+                        XValues[i] = i;
+                        Y1Values[i] = float.Parse(values[0]);
+                        Y2Values[i] = float.Parse(values[1]);
+                        Y3Values[i] = float.Parse(values[2]);
+                        Y4Values[i] = float.Parse(values[3]);
+                        Y5Values[i] = float.Parse(values[4]);
+                        Y6Values[i] = float.Parse(values[5]);
+                        Y7Values[i] = float.Parse(values[6]);
+                        Y8Values[i] = float.Parse(values[7]);
+                        Y9Values[i] = float.Parse(values[8]);
+                        Y10Values[i] = float.Parse(values[9]);
+                    }
+                    else{
+                        Debug.Log("Received wrong number of values");
+                    }
+                }
+                
             }
             catch (System.Exception ex)
             {
@@ -203,7 +300,7 @@ public class RobotMovement : MonoBehaviour
 
     async public void PictureButtonPressHandler(RawImage image)
     {
-        System.Uri uri = new System.Uri("http://192.168.1.1/?cmd=picture");
+        System.Uri uri = new System.Uri("http://192.168.1.22/?cmd=picture");
         using (var httpClient = new Windows.Web.Http.HttpClient())
         {
             // Always catch network exceptions for async methods
